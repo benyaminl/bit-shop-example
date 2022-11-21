@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajax page</title>
+</head>
+<body>
+    <form id="searchForm" onsubmit="search(event)">
+        <input type="text" id="txtSearch"> <button>Cari</button> <br>
+    </form>
+    <div id="products">
+
+    </div>
+    <form id="tambahForm" onsubmit="insert(event)">
+        <label>ID</label>
+        <input type="text" name="pid" id="pid"> <br>
+        <label>Product Name</label>
+        <input type="text" name="pname" id="pname"> <br>
+        <label>Price</label>
+        <input type="text" name="pprice" id="pprice"> <br>
+        <button name="btnInsertProduct" value="1">Insert</button>
+    </form>
+    <script>
+    function search(e) {
+        e.preventDefault(); // Berhentikan submit!
+        // Ini Prepare query param ?query=<something>&search=ini%20contoh
+        var query = new URLSearchParams();
+        query.append("query", document.getElementById("txtSearch").value);
+        query.append("search", "ini contoh");
+
+        var request = new Request("ajax-product.php?" + query.toString(), {
+            method: "GET"
+        });
+
+        // Fetch datanya!
+        fetch(request)
+            .then((resp) => resp.json())
+            .then((obj) => {
+            var html = "";
+            
+            obj.forEach(el => {
+                html += `<div>
+                    ${el.id} - ${el.name} - ${el.price}    
+                </div>`;
+            });
+            
+            if (obj.length <= 0)
+            {
+                html = "<div><i>There are no such data!</i></div>";
+            }
+
+            document.getElementById("products").innerHTML = html;
+        });
+    }
+    
+    // document.getElementById("searchForm").submit();
+    search(new Event("submit"));
+    /**
+     * @param {Event} e
+     */
+    function insert(e)
+    {
+        var form  = e.target;
+        console.log(form);
+        e.preventDefault();
+        // Cara manual
+        var dataForm = new FormData();
+        dataForm.append("pid", form.elements.pid.value);
+        dataForm.append("pname", form.elements.pname.value);
+        dataForm.append("pprice", form.elements.pprice.value);
+
+        var request = new Request("ajax-insert.php", {
+            method: "POST",
+            // Yang ini cara langsung ga ribet, pakek event.target(form)
+            // body: new FormData(form)
+            // body: new URLSearchParams({
+            //     pid: form.elements.pid.value,
+            //     pname: form.elements.pname.value,
+            //     pprice: form.elements.pprice.value,
+            // })
+            body: dataForm
+        });
+
+        fetch(request)
+            .then((resp) => resp.json())
+            .then((obj) => {
+                alert(obj.message);
+            });
+    }
+    </script>
+</body>
+</html>
